@@ -6,6 +6,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.ui.WorkoutScreen
+import com.example.ui.WorkoutViewModel
 
 object Route {
     const val WORKOUT_LIST = "workout_list"
