@@ -33,17 +33,17 @@ fun WorkoutScreen(
         modifier = modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
-                title = { Text("Android_UTH_06", fontWeight = FontWeight.ExtraBold) }
+                title = { Text("Android_UTH_06", fontWeight = FontWeight.ExtraBold) },
             )
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = { viewModel.openAddWorkoutDialog() },
                 icon = { Icon(Icons.Default.Add, contentDescription = null) },
-                text = { Text("Thêm bài tập", fontWeight = FontWeight.Bold) }
+                text = { Text("Thêm bài tập", fontWeight = FontWeight.Bold) },
             )
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
+        snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { innerPadding ->
         Column(
             modifier = Modifier
