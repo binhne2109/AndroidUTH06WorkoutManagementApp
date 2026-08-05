@@ -2,7 +2,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
-}
+    id("com.google.devtools.ksp")}
 
 android {
     namespace = "com.example"
@@ -37,4 +37,8 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.4")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.4")
     implementation("androidx.navigation:navigation-compose:2.8.5")
+    val room_version = "2.6.1"
+    implementation("androidx.room:room-runtime:$room_version")
+    ksp("androidx.room:room-compiler:$room_version")// Hỗ trợ Flow và Coroutines cho Room
+    implementation("androidx.room:room-ktx:$room_version")
 }
