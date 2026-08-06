@@ -19,7 +19,7 @@ fun AppNavigation() {
 
     NavHost(
         navController = navController,
-        startDestination = Route.WORKOUT_LIST
+        startDestination = Route.WORKOUT_LIST,
     ) {
         composable(Route.WORKOUT_LIST) {
             WorkoutScreen(viewModel = viewModel)
