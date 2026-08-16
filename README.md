@@ -3,13 +3,12 @@
 ## Thành viên
 
 | STT | MSSV | Họ và tên | Vai trò |
-|---:|---|---|---|
-| 1 | | | |
-| 2 | | | |
-| 3 | | | |
-| 4 | | | |
-| 5 | | | |
-| 6 | | | |
+| 1 | |Đặng Nguyễn Bình | |
+| 2 | |Nguyễn Thế Phú | |
+| 3 | |Phan Ký Khôi | |
+| 4 | |Nguyễn Văn Đạt  | |
+| 5 | |Nguyễn Thanh Liêm | |
+| 6 | |Lê Văn Minh Trí | |
 
 ## Giới thiệu
 
