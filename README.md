@@ -55,21 +55,30 @@ Lệnh hoặc các bước chạy Client
 
 ## Cấu hình
 
-Mô tả cách thay đổi IP, port và các tham số mạng. Không ghi password hoặc secret vào repository.
+- Ứng dụng không sử dụng kết nối mạng hoặc server nên không cần cấu hình IP, port hay các tham số mạng.
+- Các cấu hình chính được thiết lập trong project gồm SDK, JDK và Room Database. Dữ liệu được lưu trữ cục bộ trên thiết bị.
 
 ## Chức năng
 
-- [ ] Chức năng 1
-- [ ] Chức năng 2
-- [ ] Chức năng 3
+1. Đăng ký tài khoản
+2. Đăng nhập
+3. Thêm bài tập
+4. Chỉnh sửa bài tập
+5. Xóa bài tập
+6. Tìm kiếm bài tập
+7. Lọc bài tập theo danh mục
+8. Hiển thị danh sách bài tập
+9. Theo dõi thời lượng và calories
+10. Thống kê tổng số bài tập 
+11. Lưu trữ dữ liệu bằng Room Database
 
 ## Kiểm thử
 
-- Functional test:
-- Test dữ liệu không hợp lệ:
-- Test mất kết nối:
-- Stress test:
-- Performance test:
+- Functional test: Kiểm tra đăng ký, đăng nhập, thêm, sửa, xóa, tìm kiếm và lọc bài tập.
+- Test dữ liệu không hợp lệ: Kiểm tra thông tin đăng nhập, đăng ký và dữ liệu bài tập không hợp lệ.
+- Test mất kết nối: Không áp dụng vì ứng dụng không yêu cầu kết nối mạng.
+- Stress test: Kiểm tra ứng dụng khi có số lượng lớn dữ liệu bài tập.
+- Performance test: Kiểm tra thời gian phản hồi khi hiển thị, tìm kiếm và thao tác với dữ liệu.
 
 Bằng chứng kiểm thử lưu tại `Extra/`.
 
@@ -81,4 +90,9 @@ Bằng chứng kiểm thử lưu tại `Extra/`.
 
 ## Giới hạn
 
-Liệt kê chức năng chưa hỗ trợ và giới hạn hiện tại của sản phẩm.
+- Chưa hỗ trợ đồng bộ dữ liệu giữa nhiều thiết bị.
+- Chưa có server hoặc cơ sở dữ liệu trực tuyến. 
+- Chưa hỗ trợ khôi phục mật khẩu qua email. 
+- Chưa có chức năng nhắc lịch tập luyện. 
+- Chưa tích hợp với các thiết bị theo dõi sức khỏe. 
+- Dữ liệu chỉ được lưu trữ cục bộ trên thiết bị.
