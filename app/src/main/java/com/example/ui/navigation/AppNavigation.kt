@@ -15,6 +15,8 @@ object Route {
     const val LOGIN = "login"
     const val REGISTER = "register"
     const val WORKOUT_LIST = "workout_list"
+    const val STATE_DEMO = "state_demo"
+    const val STATE_DEMO_SECOND = "state_demo_second"
 }
 
 @Composable
@@ -35,9 +37,13 @@ fun AppNavigation() {
                         popUpTo(Route.LOGIN) { inclusive = true }
                     }
                 },
-            ) {
-                navController.navigate(Route.REGISTER)
-            }
+                onRegisterClick = {
+                    navController.navigate(Route.REGISTER)
+                },
+                onNavigateToStateDemo = {
+                    navController.navigate(Route.STATE_DEMO)
+                }
+            )
         }
         composable(Route.REGISTER) {
             RegisterScreen(
@@ -53,5 +59,26 @@ fun AppNavigation() {
         composable(Route.WORKOUT_LIST) {
             WorkoutScreen(viewModel = workoutViewModel)
         }
+        composable(Route.STATE_DEMO) {
+            val stateDemoViewModel: com.example.ui.statedemo.StateDemoViewModel =
+                viewModel(factory = com.example.ui.statedemo.StateDemoViewModel.Factory)
+            com.example.ui.statedemo.StateDemoScreen(
+                viewModel = stateDemoViewModel,
+                onNavigateToSecondScreen = {
+                    navController.navigate(Route.STATE_DEMO_SECOND)
+                },
+                onBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+        composable(Route.STATE_DEMO_SECOND) {
+            com.example.ui.statedemo.DummyScreen(
+                onBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
     }
 }
+
