@@ -1,8 +1,8 @@
-// File: app/build.gradle.kts
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
-    id("com.google.devtools.ksp")}
+    id("com.google.devtools.ksp")
+}
 
 android {
     namespace = "com.example"
@@ -39,6 +39,6 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     val room_version = "2.6.1"
     implementation("androidx.room:room-runtime:$room_version")
-    ksp("androidx.room:room-compiler:$room_version")// Hỗ trợ Flow và Coroutines cho Room
+    ksp("androidx.room:room-compiler:$room_version")
     implementation("androidx.room:room-ktx:$room_version")
 }

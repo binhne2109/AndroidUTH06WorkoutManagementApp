@@ -11,7 +11,7 @@ class WorkoutRepository(private val workoutDao: WorkoutDao) {
     val allWorkouts: Flow<List<WorkoutEntity>> = workoutDao.getAllWorkouts()
 
     suspend fun insert(workout: WorkoutEntity) {
-        withContext(Dispatchers.IO) { // Chuyển sang luồng IO để chạy ngầm
+        withContext(Dispatchers.IO) {
             workoutDao.insertWorkout(workout)
         }
     }

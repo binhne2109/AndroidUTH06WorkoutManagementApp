@@ -82,7 +82,6 @@ fun DummyScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Nút Quay lại màn hình chính (BẮT BUỘC ĐÚNG TÊN "Quay lại màn hình chính")
             Button(
                 onClick = onBack,
                 modifier = Modifier

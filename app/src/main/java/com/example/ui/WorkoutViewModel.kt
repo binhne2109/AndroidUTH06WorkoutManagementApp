@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.update
 
 class WorkoutViewModel : ViewModel() {
 
-    // Mock Dữ liệu ban đầu
     private val initialMockData = listOf(
         WorkoutEntity(
             id = 1,
@@ -94,7 +93,6 @@ class WorkoutViewModel : ViewModel() {
         _uiState.update { state ->
             val editing = state.editingWorkout
             val updatedList = if (editing != null) {
-                // Sửa bài tập
                 state.workouts.map {
                     if (it.id == editing.id) {
                         it.copy(
@@ -108,7 +106,6 @@ class WorkoutViewModel : ViewModel() {
                     } else it
                 }
             } else {
-                // Thêm mới
                 val newId = (state.workouts.maxOfOrNull { it.id } ?: 0) + 1
                 state.workouts + WorkoutEntity(
                     id = newId,

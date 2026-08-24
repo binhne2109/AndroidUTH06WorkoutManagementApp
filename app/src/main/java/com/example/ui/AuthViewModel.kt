@@ -6,8 +6,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 
 class AuthViewModel : ViewModel() {
-    // Danh sách user lưu trong bộ nhớ (sẽ mất khi khởi động lại app)
-    // Đã có sẵn tài khoản admin mặc định
     private val _users = MutableStateFlow(
         mutableListOf(
             User("admin", "admin@example.com", "123456")
@@ -15,7 +13,6 @@ class AuthViewModel : ViewModel() {
     )
 
     fun register(username: String, email: String, password: String): Boolean {
-        // Kiểm tra xem username đã tồn tại chưa
         if (_users.value.any { it.username == username }) {
             return false
         }

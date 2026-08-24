@@ -37,9 +37,6 @@ fun StateDemoScreen(
     onNavigateToSecondScreen: () -> Unit,
     onBack: () -> Unit
 ) {
-    // ==========================================
-    // Lifecycle log ghi nhận sự kiện Compose/Dispose
-    // ==========================================
     DisposableEffect(Unit) {
         Log.i(TAG, "StateDemoScreen COMPOSED")
         onDispose {
@@ -47,10 +44,6 @@ fun StateDemoScreen(
         }
     }
 
-    // ==========================================
-    // QUAN TRỌNG: Khai báo remember & rememberSaveable ở TOP-LEVEL composable
-    // Tuyệt đối không đặt trong if/when để tránh bị huỷ khi chuyển đổi qua lại giữa các chip
-    // ==========================================
     var rName by remember { mutableStateOf("") }
     var rCounter by remember { mutableIntStateOf(0) }
     var rSelected by remember { mutableStateOf(false) }
@@ -59,20 +52,16 @@ fun StateDemoScreen(
     var rsCounter by rememberSaveable { mutableIntStateOf(0) }
     var rsSelected by rememberSaveable { mutableStateOf(false) }
 
-    // State của ViewModel thuần
     val vmName by viewModel.vmName.collectAsStateWithLifecycle()
     val vmCounter by viewModel.vmCounter.collectAsStateWithLifecycle()
     val vmSelected by viewModel.vmSelected.collectAsStateWithLifecycle()
 
-    // State của SavedStateHandle
     val sshName by viewModel.sshName.collectAsStateWithLifecycle()
     val sshCounter by viewModel.sshCounter.collectAsStateWithLifecycle()
     val sshSelected by viewModel.sshSelected.collectAsStateWithLifecycle()
 
-    // State của DataStore
     val dsState by viewModel.dsState.collectAsStateWithLifecycle()
 
-    // Cơ chế đang chọn để kiểm tra (lưu bằng rememberSaveable để giữ chip khi xoay)
     var selectedMechanism by rememberSaveable { mutableStateOf(StateMechanism.REMEMBER) }
 
     val scrollState = rememberScrollState()
@@ -105,7 +94,6 @@ fun StateDemoScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Header: Cơ chế đang kiểm tra & Process ID (PID)
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
@@ -129,7 +117,6 @@ fun StateDemoScreen(
                 }
             }
 
-            // Thanh chọn 5 cơ chế lưu state
             Text(
                 text = "Chọn cơ chế cần kiểm chứng:",
                 style = MaterialTheme.typography.labelLarge,
@@ -152,7 +139,6 @@ fun StateDemoScreen(
 
             HorizontalDivider()
 
-            // 3 Control tương tác với state của cơ chế đang chọn
             val currentName: String
             val currentCounter: Int
             val currentSelected: Boolean
@@ -191,7 +177,6 @@ fun StateDemoScreen(
                 fontWeight = FontWeight.Bold
             )
 
-            // 1. Ô nhập tên
             OutlinedTextField(
                 value = currentName,
                 onValueChange = { newValue ->
@@ -209,7 +194,6 @@ fun StateDemoScreen(
                 shape = RoundedCornerShape(12.dp)
             )
 
-            // 2. Nút Tăng biến đếm (BẮT BUỘC ĐÚNG TÊN "Tăng biến đếm")
             Button(
                 onClick = {
                     when (selectedMechanism) {
@@ -234,7 +218,6 @@ fun StateDemoScreen(
                 )
             }
 
-            // 3. Checkbox lựa chọn
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
@@ -270,7 +253,6 @@ fun StateDemoScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 4. Nút Chuyển sang màn hình phụ (BẮT BUỘC ĐÚNG TÊN "Chuyển sang màn hình phụ")
             OutlinedButton(
                 onClick = onNavigateToSecondScreen,
                 modifier = Modifier

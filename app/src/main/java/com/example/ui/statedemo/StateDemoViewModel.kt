@@ -25,11 +25,6 @@ class StateDemoViewModel(
     private val savedStateHandle: SavedStateHandle
 ) : AndroidViewModel(application) {
 
-    // ==========================================
-    // Nhóm A: ViewModel thuần (In-memory State)
-    // Sống sót qua Recomposition, Xoay màn hình, Đổi route phụ;
-    // BỊ MẤT khi Activity bị huỷ (Don't keep activities) hoặc Process bị kill.
-    // ==========================================
     private val _vmName = MutableStateFlow("")
     val vmName: StateFlow<String> = _vmName.asStateFlow()
 
@@ -51,11 +46,6 @@ class StateDemoViewModel(
         _vmSelected.value = selected
     }
 
-    // ==========================================
-    // Nhóm B: SavedStateHandle (Bundle backed State)
-    // Sống sót qua Recomposition, Xoay màn hình, Đổi route phụ, VÀ Tạo lại Activity (Don't keep activities);
-    // BỊ MẤT khi người dùng chủ động kill app (vuốt Recents).
-    // ==========================================
     val sshName: StateFlow<String> = savedStateHandle.getStateFlow("ssh_name", "")
     val sshCounter: StateFlow<Int> = savedStateHandle.getStateFlow("ssh_counter", 0)
     val sshSelected: StateFlow<Boolean> = savedStateHandle.getStateFlow("ssh_selected", false)
@@ -73,10 +63,6 @@ class StateDemoViewModel(
         savedStateHandle["ssh_selected"] = selected
     }
 
-    // ==========================================
-    // Nhóm C: DataStore Preferences (Persistent Storage on Disk)
-    // Sống sót qua TẤT CẢ mọi kịch bản (kể cả kill app, tắt nguồn).
-    // ==========================================
     private val appDataStore = AppDataStore(application)
 
     val dsState: StateFlow<DataStoreState> = appDataStore.stateFlow
