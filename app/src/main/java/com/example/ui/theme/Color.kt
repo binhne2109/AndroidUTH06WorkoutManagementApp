@@ -18,7 +18,6 @@ val SlateLightSurface = Color(0xFFFFFFFF)
 val SlateLightContainer = Color(0xFFF1F5F9)
 val SlateLightOnSurface = Color(0xFF0F172A)
 
-// Badge Colors
 val CategoryStrength = Color(0xFF6366F1)
 val CategoryCardio = Color(0xFFEC4899)
 val CategoryHIIT = Color(0xFFF59E0B)

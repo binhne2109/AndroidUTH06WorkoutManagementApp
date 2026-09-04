@@ -31,6 +31,7 @@ fun LoginScreen(
     authViewModel: AuthViewModel,
     onLoginSuccess: () -> Unit,
     onRegisterClick: () -> Unit,
+    onNavigateToStateDemo: () -> Unit = {},
 ) {
     var email by remember { mutableStateOf("") } // Đổi username thành email cho chuẩn Firebase
     var password by remember { mutableStateOf("") }
@@ -222,6 +223,21 @@ fun LoginScreen(
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            TextButton(
+                onClick = onNavigateToStateDemo,
+                colors = ButtonDefaults.textButtonColors(
+                    contentColor = MaterialTheme.colorScheme.secondary
+                )
+            ) {
+                Text(
+                    text = "🧪 State Demo",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium
+                )
             }
         }
     }
