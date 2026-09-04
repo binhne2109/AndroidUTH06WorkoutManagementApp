@@ -1,5 +1,6 @@
 package com.example.ui
 
+import android.util.Patterns
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
@@ -44,7 +45,12 @@ fun RegisterScreen(
     var confirmPassword by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(value = false) }
     var confirmPasswordVisible by remember { mutableStateOf(value = false) }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    // 1. Tách lỗi thành 2 loại: Lỗi do người dùng nhập sai (local) và lỗi từ Firebase
+    var localError by remember { mutableStateOf<String?>(null) }
+    val firebaseError = authViewModel.errorMessage
+    val isLoading = authViewModel.isLoading
+
     var visible by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
@@ -137,7 +143,7 @@ fun RegisterScreen(
                             value = username,
                             onValueChange = {
                                 username = it
-                                errorMessage = null
+                                localError = null
                             },
                             label = { Text("Tên đăng nhập") },
                             modifier = Modifier.fillMaxWidth(),
@@ -150,7 +156,7 @@ fun RegisterScreen(
                             value = email,
                             onValueChange = {
                                 email = it
-                                errorMessage = null
+                                localError = null
                             },
                             label = { Text("Email") },
                             modifier = Modifier.fillMaxWidth(),
@@ -164,7 +170,7 @@ fun RegisterScreen(
                             value = password,
                             onValueChange = {
                                 password = it
-                                errorMessage = null
+                                localError = null
                             },
                             label = { Text("Mật khẩu") },
                             modifier = Modifier.fillMaxWidth(),
@@ -187,7 +193,7 @@ fun RegisterScreen(
                             value = confirmPassword,
                             onValueChange = {
                                 confirmPassword = it
-                                errorMessage = null
+                                localError = null
                             },
                             label = { Text("Xác nhận mật khẩu") },
                             modifier = Modifier.fillMaxWidth(),
@@ -206,9 +212,11 @@ fun RegisterScreen(
                             singleLine = true
                         )
 
-                        if (errorMessage != null) {
+                        // 2. Ưu tiên hiển thị lỗi nhập liệu, nếu không có thì hiển thị lỗi Firebase
+                        val displayError = localError ?: firebaseError
+                        if (displayError != null) {
                             Text(
-                                text = errorMessage!!,
+                                text = displayError,
                                 color = MaterialTheme.colorScheme.error,
                                 style = MaterialTheme.typography.labelMedium,
                                 modifier = Modifier.padding(horizontal = 4.dp)
@@ -219,25 +227,36 @@ fun RegisterScreen(
 
                         Button(
                             onClick = {
-                                if (username.isBlank() || email.isBlank() || password.isBlank()) {
-                                    errorMessage = "Vui lòng điền đầy đủ thông tin!"
-                                } else if (password != confirmPassword) {
-                                    errorMessage = "Mật khẩu xác nhận không khớp!"
-                                } else {
-                                    val success = authViewModel.register(username, email, password)
-                                    if (success) {
-                                        onRegisterSuccess()
-                                    } else {
-                                        errorMessage = "Tên đăng nhập đã tồn tại!"
-                                    }
+                                // 3. Kiểm tra tính hợp lệ của dữ liệu trước khi gọi Firebase
+                                localError = when {
+                                    username.isBlank() || email.isBlank() || password.isBlank() -> "Vui lòng điền đầy đủ thông tin!"
+                                    !Patterns.EMAIL_ADDRESS.matcher(email).matches() -> "Định dạng email không hợp lệ!"
+                                    password.length < 6 -> "Mật khẩu phải có ít nhất 6 ký tự!"
+                                    password != confirmPassword -> "Mật khẩu xác nhận không khớp!"
+                                    else -> null // Không có lỗi
+                                }
+
+                                // 4. Nếu dữ liệu đã chuẩn, đẩy email và password lên máy chủ Firebase
+                                if (localError == null) {
+                                    authViewModel.register(username, email, password, onRegisterSuccess)
                                 }
                             },
+                            enabled = !isLoading, // Khóa nút khi đang gửi dữ liệu
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(56.dp),
                             shape = RoundedCornerShape(16.dp)
                         ) {
-                            Text("Đăng Ký", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                            // 5. Hiện vòng xoay Loading
+                            if (isLoading) {
+                                CircularProgressIndicator(
+                                    color = MaterialTheme.colorScheme.onPrimary,
+                                    modifier = Modifier.size(24.dp),
+                                    strokeWidth = 2.5.dp
+                                )
+                            } else {
+                                Text("Đăng Ký", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                            }
                         }
                     }
                 }

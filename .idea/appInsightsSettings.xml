@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.aistudio.workoutmanagement.uth06" />
+                  <option name="mobileSdkAppId" value="1:766490966685:android:3292ff569bccd29aef3274" />
+                  <option name="projectId" value="workoutmanagementapp" />
+                  <option name="projectNumber" value="766490966685" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

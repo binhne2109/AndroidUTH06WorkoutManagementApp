@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "766490966685",
+    "project_id": "workoutmanagementapp",
+    "storage_bucket": "workoutmanagementapp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:766490966685:android:3292ff569bccd29aef3274",
+        "android_client_info": {
+          "package_name": "com.aistudio.workoutmanagement.uth06"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCtEEo-UGBqQ1diGZhfILBxcwDXaqs95Y0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

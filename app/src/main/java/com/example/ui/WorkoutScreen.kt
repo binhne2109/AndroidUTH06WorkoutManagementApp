@@ -6,6 +6,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -17,6 +20,7 @@ import com.example.ui.components.*
 @Composable
 fun WorkoutScreen(
     viewModel: WorkoutViewModel,
+    onLogout: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -34,6 +38,15 @@ fun WorkoutScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Android_UTH_06", fontWeight = FontWeight.ExtraBold) },
+                actions = {
+                    IconButton(onClick = onLogout) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ExitToApp,
+                            contentDescription = "Đăng Xuất"
+
+                        )
+                    }
+                }
             )
         },
         floatingActionButton = {

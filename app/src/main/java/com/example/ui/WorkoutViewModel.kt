@@ -1,61 +1,59 @@
 package com.example.ui
-
+import kotlinx.coroutines.Job
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.data.model.WorkoutEntity
+import com.example.data.repository.AuthRepository
+import com.example.data.repository.WorkoutRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
+// Kế thừa AndroidViewModel để lấy được Context khởi tạo Room Database
 class WorkoutViewModel : ViewModel() {
+    private var workoutJob: Job? = null
+    // 1. Khởi tạo Database và kết nối Repository
+    private val repository = WorkoutRepository()
+    private val authRepository = AuthRepository()
+    // 2. Khởi tạo AuthRepository để lấy mã ID Firebase
+    private val currentUserId: String
+        get() = authRepository.currentUser?.uid ?: ""
 
-    // Mock Dữ liệu ban đầu
-    private val initialMockData = listOf(
-        WorkoutEntity(
-            id = 1,
-            title = "Buổi Tập Full Body Strength",
-            category = "Strength",
-            durationMinutes = 50,
-            caloriesBurned = 420,
-            intensity = "Nặng",
-            notes = "Bench press 4x10, Squat 4x12"
-        ),
-        WorkoutEntity(
-            id = 2,
-            title = "Chạy Bộ Buổi Sáng",
-            category = "Cardio",
-            durationMinutes = 35,
-            caloriesBurned = 310,
-            intensity = "Trung bình",
-            notes = "Chạy công viên 5km, pace 6:30 min/km"
-        ),
-        WorkoutEntity(
-            id = 3,
-            title = "HIIT Đốt Mỡ Siêu Cấp",
-            category = "HIIT",
-            durationMinutes = 25,
-            caloriesBurned = 350,
-            intensity = "Cực nặng",
-            notes = "Burpees, Mountain climbers (45s work / 15s rest)"
-        ),
-        WorkoutEntity(
-            id = 4,
-            title = "Yoga Thư Giãn",
-            category = "Yoga",
-            durationMinutes = 40,
-            caloriesBurned = 180,
-            intensity = "Dễ",
-            notes = "Hatha Yoga tập trung thở sâu"
-        )
-    )
-
-    private val _uiState = MutableStateFlow(
-        WorkoutUiState(
-            workouts = initialMockData,
-            filteredWorkouts = initialMockData
-        )
-    )
+    // Bắt đầu với State rỗng (không dùng Mock Data nữa)
+    private val _uiState = MutableStateFlow(WorkoutUiState(workouts = emptyList(), filteredWorkouts = emptyList()))
     val uiState: StateFlow<WorkoutUiState> = _uiState.asStateFlow()
+
+    init {
+        // Vừa vào app là tải dữ liệu từ CSDL của đúng người dùng đó lên ngay
+        loadWorkouts()
+    }
+
+    fun loadWorkouts() {
+        if (currentUserId.isBlank()) return // Chưa đăng nhập thì bỏ qua
+
+        workoutJob?.cancel() // Hủy kết nối cũ
+
+        workoutJob = viewModelScope.launch {
+            // Lắng nghe dữ liệu từ Firestore
+            repository.getAllWorkouts(currentUserId).collect { workoutsList ->
+
+                // THÊM DÒNG NÀY: Tự động sắp xếp thời gian giảm dần (mới nhất lên trên)
+                val sortedList = workoutsList.sortedByDescending { it.dateMillis }
+
+                _uiState.update { currentState ->
+                    val filtered = filterList(sortedList, currentState.searchQuery, currentState.selectedCategory)
+                    currentState.copy(
+                        workouts = sortedList, // Dùng danh sách đã sắp xếp
+                        filteredWorkouts = filtered // Dùng danh sách đã sắp xếp
+                    )
+                }
+            }
+        }
+    }
 
     fun onSearchQueryChange(query: String) {
         _uiState.update { currentState ->
@@ -91,27 +89,15 @@ class WorkoutViewModel : ViewModel() {
         intensity: String,
         notes: String
     ) {
-        _uiState.update { state ->
-            val editing = state.editingWorkout
-            val updatedList = if (editing != null) {
+        if (currentUserId.isBlank()) return
+
+        val editing = _uiState.value.editingWorkout
+
+        // Phải đưa vào viewModelScope.launch để chạy ngầm Database
+        viewModelScope.launch {
+            if (editing != null) {
                 // Sửa bài tập
-                state.workouts.map {
-                    if (it.id == editing.id) {
-                        it.copy(
-                            title = title,
-                            category = category,
-                            durationMinutes = durationMinutes,
-                            caloriesBurned = caloriesBurned,
-                            intensity = intensity,
-                            notes = notes
-                        )
-                    } else it
-                }
-            } else {
-                // Thêm mới
-                val newId = (state.workouts.maxOfOrNull { it.id } ?: 0) + 1
-                state.workouts + WorkoutEntity(
-                    id = newId,
+                val updatedWorkout = editing.copy(
                     title = title,
                     category = category,
                     durationMinutes = durationMinutes,
@@ -119,15 +105,23 @@ class WorkoutViewModel : ViewModel() {
                     intensity = intensity,
                     notes = notes
                 )
+                repository.update(updatedWorkout)
+                _uiState.update { it.copy(snackbarMessage = "Đã cập nhật bài tập") }
+            } else {
+                // Thêm mới: Room tự sinh ID, ta chỉ việc GẮN MÃ UID FIREBASE vào đây!
+                val newWorkout = WorkoutEntity(
+                    userId = currentUserId,
+                    title = title,
+                    category = category,
+                    durationMinutes = durationMinutes,
+                    caloriesBurned = caloriesBurned,
+                    intensity = intensity,
+                    notes = notes
+                )
+                repository.insert(newWorkout)
+                _uiState.update { it.copy(snackbarMessage = "Đã thêm bài tập mới") }
             }
-            val filtered = filterList(updatedList, state.searchQuery, state.selectedCategory)
-            state.copy(
-                workouts = updatedList,
-                filteredWorkouts = filtered,
-                isAddEditSheetOpen = false,
-                editingWorkout = null,
-                snackbarMessage = if (editing != null) "Đã cập nhật bài tập" else "Đã thêm bài tập mới"
-            )
+            closeAddEditDialog()
         }
     }
 
@@ -140,16 +134,14 @@ class WorkoutViewModel : ViewModel() {
     }
 
     fun confirmDeleteWorkout() {
-        _uiState.update { state ->
-            val target = state.deletingWorkout ?: return@update state
-            val updatedList = state.workouts.filter { it.id != target.id }
-            val filtered = filterList(updatedList, state.searchQuery, state.selectedCategory)
-            state.copy(
-                workouts = updatedList,
-                filteredWorkouts = filtered,
+        val target = _uiState.value.deletingWorkout ?: return
+
+        viewModelScope.launch {
+            repository.delete(target)
+            _uiState.update { it.copy(
                 deletingWorkout = null,
                 snackbarMessage = "Đã xóa bài tập: ${target.title}"
-            )
+            )}
         }
     }
 

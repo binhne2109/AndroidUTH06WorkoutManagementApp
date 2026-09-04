@@ -32,11 +32,14 @@ fun LoginScreen(
     onLoginSuccess: () -> Unit,
     onRegisterClick: () -> Unit,
 ) {
-    var username by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") } // Đổi username thành email cho chuẩn Firebase
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(value = false) }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
     var visible by remember { mutableStateOf(false) }
+
+    // 1. Lắng nghe trạng thái trực tiếp từ AuthViewModel
+    val isLoading = authViewModel.isLoading
+    val errorMessage = authViewModel.errorMessage
 
     LaunchedEffect(Unit) {
         visible = true
@@ -112,12 +115,9 @@ fun LoginScreen(
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     OutlinedTextField(
-                        value = username,
-                        onValueChange = {
-                            username = it
-                            errorMessage = null
-                        },
-                        label = { Text("Tên đăng nhập") },
+                        value = email,
+                        onValueChange = { email = it },
+                        label = { Text("Email đăng nhập") }, // Firebase dùng Email
                         modifier = Modifier.fillMaxWidth(),
                         leadingIcon = {
                             Icon(
@@ -128,6 +128,7 @@ fun LoginScreen(
                         },
                         shape = RoundedCornerShape(16.dp),
                         singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = MaterialTheme.colorScheme.primary,
                             unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
@@ -136,10 +137,7 @@ fun LoginScreen(
 
                     OutlinedTextField(
                         value = password,
-                        onValueChange = {
-                            password = it
-                            errorMessage = null
-                        },
+                        onValueChange = { password = it },
                         label = { Text("Mật khẩu") },
                         modifier = Modifier.fillMaxWidth(),
                         leadingIcon = {
@@ -167,9 +165,10 @@ fun LoginScreen(
                         )
                     )
 
+                    // 2. Hiển thị lỗi lấy từ Firebase (thông qua ViewModel)
                     if (errorMessage != null) {
                         Text(
-                            text = errorMessage!!,
+                            text = errorMessage,
                             color = MaterialTheme.colorScheme.error,
                             style = MaterialTheme.typography.labelMedium,
                             modifier = Modifier.padding(horizontal = 4.dp)
@@ -179,24 +178,32 @@ fun LoginScreen(
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Button(
+                        // 3. Gọi hàm login bất đồng bộ và truyền onLoginSuccess vào
                         onClick = {
-                            if (authViewModel.login(username, password)) {
-                                onLoginSuccess()
-                            } else {
-                                errorMessage = "Sai tên đăng nhập hoặc mật khẩu!"
-                            }
+                            authViewModel.login(email, password, onLoginSuccess)
                         },
+                        // Khóa nút khi đang tải hoặc khi chưa nhập đủ thông tin
+                        enabled = !isLoading && email.isNotBlank() && password.isNotBlank(),
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(56.dp),
                         shape = RoundedCornerShape(16.dp),
                         elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
                     ) {
-                        Text(
-                            "Đăng Nhập",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold
-                        )
+                        // 4. Nếu đang tải thì hiện vòng xoay, nếu không thì hiện chữ
+                        if (isLoading) {
+                            CircularProgressIndicator(
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                modifier = Modifier.size(24.dp),
+                                strokeWidth = 2.5.dp
+                            )
+                        } else {
+                            Text(
+                                "Đăng Nhập",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
                 }
             }

@@ -1,34 +1,69 @@
 package com.example.ui
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import com.example.data.model.User
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.update
+import com.example.data.repository.AuthRepository
 
 class AuthViewModel : ViewModel() {
-    // Danh sách user lưu trong bộ nhớ (sẽ mất khi khởi động lại app)
-    // Đã có sẵn tài khoản admin mặc định
-    private val _users = MutableStateFlow(
-        mutableListOf(
-            User("admin", "admin@example.com", "123456")
-        )
-    )
 
-    fun register(username: String, email: String, password: String): Boolean {
-        // Kiểm tra xem username đã tồn tại chưa
-        if (_users.value.any { it.username == username }) {
-            return false
+    // Kết nối với kho chứa AuthRepository (đã gọi API Firebase)
+    private val repository = AuthRepository()
+
+    // Biến trạng thái: Xác định xem app có đang chờ mạng (loading) không
+    var isLoading by mutableStateOf(false)
+        private set
+
+    // Biến trạng thái: Lưu trữ câu thông báo lỗi để hiển thị lên màn hình
+    var errorMessage by mutableStateOf<String?>(null)
+        private set
+
+    // Biến trạng thái: Xác định đăng nhập/đăng ký thành công chưa
+    var isSuccess by mutableStateOf(false)
+        private set
+
+    // Kiểm tra xem người dùng đã đăng nhập từ trước chưa (để điều hướng)
+    val isUserLoggedIn: Boolean
+        get() = repository.currentUser != null
+
+    // Lệnh Đăng ký (Có nhận thêm biến username từ giao diện của bạn)
+    fun register(username: String, email: String, password: String, onSuccess: () -> Unit) {
+        isLoading = true
+        errorMessage = null
+
+        // Firebase mặc định đăng ký bằng email & password
+        repository.register(email, password) { success, error ->
+            isLoading = false
+            if (success) {
+                // (Tùy chọn nâng cao) Sau này bạn có thể dùng biến username
+                // để cập nhật Profile Firebase tại đây.
+                isSuccess = true
+                onSuccess()
+            } else {
+                errorMessage = error
+            }
         }
-        
-        _users.update { currentUsers ->
-            val newList = currentUsers.toMutableList()
-            newList.add(User(username, email, password))
-            newList
-        }
-        return true
     }
 
-    fun login(username: String, password: String): Boolean {
-        return _users.value.any { it.username == username && it.password == password }
+    // Lệnh Đăng nhập
+    fun login(email: String, password: String, onSuccess: () -> Unit) {
+        isLoading = true
+        errorMessage = null
+        repository.login(email, password) { success, error ->
+            isLoading = false
+            if (success) {
+                isSuccess = true
+                onSuccess()
+            } else {
+                errorMessage = error
+            }
+        }
+    }
+
+    // Lệnh Đăng xuất
+    fun logout() {
+        repository.logout()
+        isSuccess = false
     }
 }
