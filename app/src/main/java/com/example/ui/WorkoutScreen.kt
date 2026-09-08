@@ -5,6 +5,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Bookmarks // [Thành viên 6] icon Mẫu & Kế hoạch tập
 import androidx.compose.material3.*
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material3.Icon
@@ -22,6 +23,7 @@ fun WorkoutScreen(
     viewModel: WorkoutViewModel,
     onLogout: () -> Unit,
     modifier: Modifier = Modifier,
+    onOpenTemplates: () -> Unit = {}, //  mở màn hình Mẫu & Kế hoạch tập
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -39,6 +41,13 @@ fun WorkoutScreen(
             TopAppBar(
                 title = { Text("Android_UTH_06", fontWeight = FontWeight.ExtraBold) },
                 actions = {
+                    // [Thành viên 6] Lối vào tính năng Mẫu bài tập & Kế hoạch tập
+                    IconButton(onClick = onOpenTemplates) {
+                        Icon(
+                            imageVector = Icons.Default.Bookmarks,
+                            contentDescription = "Mẫu & Kế hoạch tập"
+                        )
+                    }
                     IconButton(onClick = onLogout) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ExitToApp,

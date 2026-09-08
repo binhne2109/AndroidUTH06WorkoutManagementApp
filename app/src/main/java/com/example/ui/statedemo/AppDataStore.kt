@@ -12,7 +12,6 @@ import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
-
 private const val TAG = "STATE_DEMO"
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "state_demo")
 
