@@ -9,6 +9,8 @@ import androidx.navigation.compose.rememberNavController
 import com.example.ui.AuthViewModel
 import com.example.ui.LoginScreen
 import com.example.ui.RegisterScreen
+import com.example.ui.TemplatePlanScreen // [Thành viên 6]
+import com.example.ui.TemplatePlanViewModel // [Thành viên 6]
 import com.example.ui.WorkoutScreen
 import com.example.ui.WorkoutViewModel
 
@@ -16,6 +18,7 @@ object Route {
     const val LOGIN = "login"
     const val REGISTER = "register"
     const val WORKOUT_LIST = "workout_list"
+    const val TEMPLATES_PLANS = "templates_plans" // [Thành viên 6]
 }
 
 @Composable
@@ -23,6 +26,7 @@ fun AppNavigation() {
     val navController = rememberNavController()
     val authViewModel: AuthViewModel = viewModel()
     val workoutViewModel: WorkoutViewModel = viewModel()
+    val templatePlanViewModel: TemplatePlanViewModel = viewModel() // [Thành viên 6]
 
     // LẤY TRẠNG THÁI TỪ FIREBASE:
     // Nếu đã đăng nhập -> vô thẳng WORKOUT_LIST, nếu chưa -> bắt đầu từ LOGIN
@@ -74,7 +78,19 @@ fun AppNavigation() {
                     navController.navigate(Route.LOGIN) {
                         popUpTo(Route.WORKOUT_LIST) { inclusive = true }
                     }
+                },
+                onOpenTemplates = { // [Thành viên 6]
+                    navController.navigate(Route.TEMPLATES_PLANS)
                 }
+            )
+        }
+
+        // [Thành viên 6] Màn hình Mẫu bài tập & Kế hoạch tập
+        composable(Route.TEMPLATES_PLANS) {
+            TemplatePlanScreen(
+                templateViewModel = templatePlanViewModel,
+                workoutViewModel = workoutViewModel,
+                onBack = { navController.popBackStack() }
             )
         }
     }
