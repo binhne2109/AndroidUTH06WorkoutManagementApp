@@ -1,54 +1,49 @@
 package com.example.ui
-import kotlinx.coroutines.Job
+
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.data.model.WorkoutEntity
 import com.example.data.repository.AuthRepository
 import com.example.data.repository.WorkoutRepository
+import com.example.util.AlarmScheduler
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-// Kế thừa AndroidViewModel để lấy được Context khởi tạo Room Database
-class WorkoutViewModel : ViewModel() {
+class WorkoutViewModel(application: Application) : AndroidViewModel(application) {
     private var workoutJob: Job? = null
-    // 1. Khởi tạo Database và kết nối Repository
     private val repository = WorkoutRepository()
     private val authRepository = AuthRepository()
-    // 2. Khởi tạo AuthRepository để lấy mã ID Firebase
+    private val alarmScheduler = AlarmScheduler(application)
+
     private val currentUserId: String
         get() = authRepository.currentUser?.uid ?: ""
 
-    // Bắt đầu với State rỗng (không dùng Mock Data nữa)
     private val _uiState = MutableStateFlow(WorkoutUiState(workouts = emptyList(), filteredWorkouts = emptyList()))
     val uiState: StateFlow<WorkoutUiState> = _uiState.asStateFlow()
 
     init {
-        // Vừa vào app là tải dữ liệu từ CSDL của đúng người dùng đó lên ngay
         loadWorkouts()
     }
 
     fun loadWorkouts() {
-        if (currentUserId.isBlank()) return // Chưa đăng nhập thì bỏ qua
+        if (currentUserId.isBlank()) return
 
-        workoutJob?.cancel() // Hủy kết nối cũ
+        workoutJob?.cancel()
 
         workoutJob = viewModelScope.launch {
-            // Lắng nghe dữ liệu từ Firestore
             repository.getAllWorkouts(currentUserId).collect { workoutsList ->
-
-                // THÊM DÒNG NÀY: Tự động sắp xếp thời gian giảm dần (mới nhất lên trên)
                 val sortedList = workoutsList.sortedByDescending { it.dateMillis }
 
                 _uiState.update { currentState ->
                     val filtered = filterList(sortedList, currentState.searchQuery, currentState.selectedCategory)
                     currentState.copy(
-                        workouts = sortedList, // Dùng danh sách đã sắp xếp
-                        filteredWorkouts = filtered // Dùng danh sách đã sắp xếp
+                        workouts = sortedList,
+                        filteredWorkouts = filtered
                     )
                 }
             }
@@ -87,40 +82,55 @@ class WorkoutViewModel : ViewModel() {
         durationMinutes: Int,
         caloriesBurned: Int,
         intensity: String,
-        notes: String
+        notes: String,
+        startTimeMillis: Long,
+        recurringDays: Int
     ) {
         if (currentUserId.isBlank()) return
 
         val editing = _uiState.value.editingWorkout
 
-        // Phải đưa vào viewModelScope.launch để chạy ngầm Database
         viewModelScope.launch {
-            if (editing != null) {
-                // Sửa bài tập
-                val updatedWorkout = editing.copy(
+            val workoutToSave = if (editing != null) {
+                editing.copy(
                     title = title,
                     category = category,
                     durationMinutes = durationMinutes,
                     caloriesBurned = caloriesBurned,
                     intensity = intensity,
-                    notes = notes
+                    notes = notes,
+                    startTimeMillis = startTimeMillis,
+                    recurringDays = recurringDays
                 )
-                repository.update(updatedWorkout)
-                _uiState.update { it.copy(snackbarMessage = "Đã cập nhật bài tập") }
             } else {
-                // Thêm mới: Room tự sinh ID, ta chỉ việc GẮN MÃ UID FIREBASE vào đây!
-                val newWorkout = WorkoutEntity(
+                WorkoutEntity(
                     userId = currentUserId,
                     title = title,
                     category = category,
                     durationMinutes = durationMinutes,
                     caloriesBurned = caloriesBurned,
                     intensity = intensity,
-                    notes = notes
+                    notes = notes,
+                    startTimeMillis = startTimeMillis,
+                    recurringDays = recurringDays
                 )
-                repository.insert(newWorkout)
+            }
+
+            if (editing != null) {
+                repository.update(workoutToSave)
+                _uiState.update { it.copy(snackbarMessage = "Đã cập nhật bài tập") }
+            } else {
+                repository.insert(workoutToSave)
                 _uiState.update { it.copy(snackbarMessage = "Đã thêm bài tập mới") }
             }
+
+            // Lập lịch báo thức
+            if (workoutToSave.startTimeMillis > 0) {
+                alarmScheduler.scheduleWorkoutAlarm(workoutToSave)
+            } else {
+                alarmScheduler.cancelWorkoutAlarm(workoutToSave)
+            }
+
             closeAddEditDialog()
         }
     }
@@ -138,6 +148,7 @@ class WorkoutViewModel : ViewModel() {
 
         viewModelScope.launch {
             repository.delete(target)
+            alarmScheduler.cancelWorkoutAlarm(target)
             _uiState.update { it.copy(
                 deletingWorkout = null,
                 snackbarMessage = "Đã xóa bài tập: ${target.title}"

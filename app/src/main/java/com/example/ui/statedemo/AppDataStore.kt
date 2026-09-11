@@ -19,23 +19,23 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
 data class DataStoreState(
     val name: String = "",
     val counter: Int = 0,
-    val isSelected: Boolean = false
+    val isSelected: Boolean = false,
 )
 
 class AppDataStore(private val context: Context) {
 
-    private val KEY_NAME = stringPreferencesKey("ds_name")
-    private val KEY_COUNTER = intPreferencesKey("ds_counter")
-    private val KEY_SELECTED = booleanPreferencesKey("ds_selected")
+    private val keyName = stringPreferencesKey("ds_name")
+    private val keyCounter = intPreferencesKey("ds_counter")
+    private val keySelected = booleanPreferencesKey("ds_selected")
 
     private var isFirstRead = true
 
     val stateFlow: Flow<DataStoreState> = context.dataStore.data
         .map { preferences ->
             DataStoreState(
-                name = preferences[KEY_NAME] ?: "",
-                counter = preferences[KEY_COUNTER] ?: 0,
-                isSelected = preferences[KEY_SELECTED] ?: false
+                name = preferences[keyName] ?: "",
+                counter = preferences[keyCounter] ?: 0,
+                isSelected = preferences[keySelected] ?: false
             )
         }
         .onEach { state ->
@@ -47,21 +47,21 @@ class AppDataStore(private val context: Context) {
 
     suspend fun saveName(name: String) {
         context.dataStore.edit { preferences ->
-            preferences[KEY_NAME] = name
+            preferences[keyName] = name
         }
         Log.i(TAG, "DataStore GHI: name='$name'")
     }
 
     suspend fun saveCounter(counter: Int) {
         context.dataStore.edit { preferences ->
-            preferences[KEY_COUNTER] = counter
+            preferences[keyCounter] = counter
         }
         Log.i(TAG, "DataStore GHI: counter=$counter")
     }
 
     suspend fun saveSelected(isSelected: Boolean) {
         context.dataStore.edit { preferences ->
-            preferences[KEY_SELECTED] = isSelected
+            preferences[keySelected] = isSelected
         }
         Log.i(TAG, "DataStore GHI: selected=$isSelected")
     }

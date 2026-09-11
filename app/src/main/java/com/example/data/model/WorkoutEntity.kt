@@ -11,5 +11,7 @@ data class WorkoutEntity(
     val caloriesBurned: Int = 0,
     val intensity: String = "Medium",
     val dateMillis: Long = System.currentTimeMillis(),
+    val startTimeMillis: Long = 0L, // Thời gian bắt đầu tập (giờ:phút)
+    val recurringDays: Int = 0, // Bitmask: 1=Mon, 2=Tue, 4=Wed, 8=Thu, 16=Fri, 32=Sat, 64=Sun
     val notes: String = ""
 )
