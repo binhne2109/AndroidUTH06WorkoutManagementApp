@@ -1,17 +1,17 @@
 package com.example.ui
-import kotlinx.coroutines.Job
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.data.model.WorkoutEntity
 import com.example.data.repository.AuthRepository
 import com.example.data.repository.WorkoutRepository
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.LocalTime
 
 // Kế thừa AndroidViewModel để lấy được Context khởi tạo Room Database
 class WorkoutViewModel : ViewModel() {
@@ -93,6 +93,7 @@ class WorkoutViewModel : ViewModel() {
 
         val editing = _uiState.value.editingWorkout
 
+
         // Phải đưa vào viewModelScope.launch để chạy ngầm Database
         viewModelScope.launch {
             if (editing != null) {
@@ -116,7 +117,11 @@ class WorkoutViewModel : ViewModel() {
                     durationMinutes = durationMinutes,
                     caloriesBurned = caloriesBurned,
                     intensity = intensity,
-                    notes = notes
+                    notes = notes,
+                    dateMillis = dateMillis,
+                    startTime = startTime,
+                    endTime = endTime,
+                    completed = false
                 )
                 repository.insert(newWorkout)
                 _uiState.update { it.copy(snackbarMessage = "Đã thêm bài tập mới") }

@@ -13,12 +13,15 @@ import com.example.ui.TemplatePlanScreen // [Thành viên 6]
 import com.example.ui.TemplatePlanViewModel // [Thành viên 6]
 import com.example.ui.WorkoutScreen
 import com.example.ui.WorkoutViewModel
+import com.example.ui.calendar.CalendarScreen
+import com.example.ui.calendar.CalendarViewModel
 
 object Route {
     const val LOGIN = "login"
     const val REGISTER = "register"
     const val WORKOUT_LIST = "workout_list"
     const val TEMPLATES_PLANS = "templates_plans" // [Thành viên 6]
+    const val CALENDAR = "calendar" // thanh vien 3 them vao
 }
 
 @Composable
@@ -27,6 +30,7 @@ fun AppNavigation() {
     val authViewModel: AuthViewModel = viewModel()
     val workoutViewModel: WorkoutViewModel = viewModel()
     val templatePlanViewModel: TemplatePlanViewModel = viewModel() // [Thành viên 6]
+    val calendarViewModel: CalendarViewModel = viewModel() // thanh vien 3 them vao
 
     // LẤY TRẠNG THÁI TỪ FIREBASE:
     // Nếu đã đăng nhập -> vô thẳng WORKOUT_LIST, nếu chưa -> bắt đầu từ LOGIN
@@ -81,7 +85,11 @@ fun AppNavigation() {
                 },
                 onOpenTemplates = { // [Thành viên 6]
                     navController.navigate(Route.TEMPLATES_PLANS)
+                },
+                onOpenCalendar = { // tv 3
+                    navController.navigate(Route.CALENDAR)
                 }
+
             )
         }
 
@@ -91,6 +99,14 @@ fun AppNavigation() {
                 templateViewModel = templatePlanViewModel,
                 workoutViewModel = workoutViewModel,
                 onBack = { navController.popBackStack() }
+            )
+        }
+        composable(Route.CALENDAR) { // thanh vien 3 them vao
+            CalendarScreen(
+                viewModel = calendarViewModel,
+                onBack = {
+                    navController.popBackStack()
+                }
             )
         }
     }

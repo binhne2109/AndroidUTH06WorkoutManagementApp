@@ -12,19 +12,44 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.data.model.WorkoutEntity
+import java.time.Instant
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WorkoutAddEditSheet(
     editingWorkout: WorkoutEntity?,
     onDismiss: () -> Unit,
-    onSave: (title: String, category: String, duration: Int, calories: Int, intensity: String, notes: String) -> Unit
+    onSave: (
+        title: String,
+        category: String,
+        duration: Int,
+        calories: Int,
+        intensity: String,
+        notes: String,
+        dateMillis: Long,
+        startTime: Long,
+        endTime: Long
+    ) -> Unit
 ) {
     var title by remember(editingWorkout) { mutableStateOf(editingWorkout?.title ?: "") }
     var category by remember(editingWorkout) { mutableStateOf(editingWorkout?.category ?: "Strength") }
     var duration by remember(editingWorkout) { mutableStateOf(editingWorkout?.durationMinutes?.toString() ?: "30") }
     var calories by remember(editingWorkout) { mutableStateOf(editingWorkout?.caloriesBurned?.toString() ?: "200") }
     var notes by remember(editingWorkout) { mutableStateOf(editingWorkout?.notes ?: "") }
+
+    var selectedDate by remember { mutableStateOf(LocalDate.now()) }
+    var selectedStartTime by remember { mutableStateOf(LocalTime.of(18, 0)) }
+    var selectedEndTime by remember { mutableStateOf(LocalTime.of(19, 0)) }
+    var showDatePicker by remember { mutableStateOf(false) }
+    var showStartTimePicker by remember { mutableStateOf(false) }
+    var showEndTimePicker by remember { mutableStateOf(false) }
+    var scheduleError by remember { mutableStateOf<String?>(null) }
+    val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+    val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
 
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(
@@ -76,6 +101,57 @@ fun WorkoutAddEditSheet(
                     modifier = Modifier.weight(1f)
                 )
             }
+            Text(
+                text = "Ngày tập",
+                modifier = Modifier.padding(top = 8.dp)
+            )
+
+            OutlinedButton(
+                onClick = {
+                    showDatePicker = true
+                    scheduleError = null
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(selectedDate.format(dateFormatter))
+            }
+
+            Text(
+                text = "Giờ bắt đầu",
+                modifier = Modifier.padding(top = 8.dp)
+            )
+
+            OutlinedButton(
+                onClick = {
+                    showStartTimePicker = true
+                    scheduleError = null
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(selectedStartTime.format(timeFormatter))
+            }
+
+            Text(
+                text = "Giờ kết thúc",
+                modifier = Modifier.padding(top = 8.dp)
+            )
+
+            OutlinedButton(
+                onClick = {
+                    showEndTimePicker = true
+                    scheduleError = null
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(selectedEndTime.format(timeFormatter))
+            }
+
+            if (scheduleError != null) {
+                Text(
+                    text = scheduleError!!,
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.error
+                )
+            }
 
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -95,14 +171,40 @@ fun WorkoutAddEditSheet(
                 }
                 Button(
                     onClick = {
-                        if (title.isNotBlank()) {
+                        val startMillis = selectedDate
+                            .atTime(selectedStartTime)
+                            .atZone(ZoneId.systemDefault())
+                            .toInstant()
+                            .toEpochMilli()
+
+                        val endMillis = selectedDate
+                            .atTime(selectedEndTime)
+                            .atZone(ZoneId.systemDefault())
+                            .toInstant()
+                            .toEpochMilli()
+
+                        if (title.isBlank()) {
+                            scheduleError = "Vui lòng nhập tên bài tập"
+                        } else if (endMillis <= startMillis) {
+                            scheduleError = "Giờ kết thúc phải sau giờ bắt đầu"
+                        } else {
+                            scheduleError = null
+
+                            val dateMillis = selectedDate
+                                .atStartOfDay(ZoneId.systemDefault())
+                                .toInstant()
+                                .toEpochMilli()
+
                             onSave(
                                 title.trim(),
                                 category,
                                 duration.toIntOrNull() ?: 30,
                                 calories.toIntOrNull() ?: 200,
                                 "Medium",
-                                notes.trim()
+                                notes.trim(),
+                                dateMillis,
+                                startMillis,
+                                endMillis
                             )
                         }
                     },
@@ -110,6 +212,126 @@ fun WorkoutAddEditSheet(
                 ) {
                     Text(if (editingWorkout == null) "Thêm" else "Lưu")
                 }
+            }
+            if (showDatePicker) { // hop chon ngay
+                val datePickerState = rememberDatePickerState(
+                    initialSelectedDateMillis = selectedDate
+                        .atStartOfDay(ZoneId.of("UTC"))
+                        .toInstant()
+                        .toEpochMilli()
+                )
+
+                DatePickerDialog(
+                    onDismissRequest = { showDatePicker = false },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                val selectedMillis = datePickerState.selectedDateMillis
+
+                                if (selectedMillis != null) {
+                                    selectedDate = Instant
+                                        .ofEpochMilli(selectedMillis)
+                                        .atZone(ZoneId.of("UTC"))
+                                        .toLocalDate()
+                                }
+
+                                showDatePicker = false
+                            }
+                        ) {
+                            Text("Xác nhận")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(
+                            onClick = {
+                                showDatePicker = false
+                            }
+                        ) {
+                            Text("Hủy")
+                        }
+                    }
+                ) {
+                    DatePicker(state = datePickerState)
+                }
+            }
+            if (showStartTimePicker) { // hop chon gio bat dau
+                val timePickerState = rememberTimePickerState(
+                    initialHour = selectedStartTime.hour,
+                    initialMinute = selectedStartTime.minute,
+                    is24Hour = true
+                )
+
+                AlertDialog(
+                    onDismissRequest = { showStartTimePicker = false },
+                    title = { Text("Chọn giờ bắt đầu") },
+                    text = { TimePicker(state = timePickerState) },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                selectedStartTime = LocalTime.of(
+                                    timePickerState.hour,
+                                    timePickerState.minute
+                                )
+                                showStartTimePicker = false
+                                scheduleError = null
+                            }
+                        ) {
+                            Text("Xác nhận")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(
+                            onClick = {
+                                showStartTimePicker = false
+                            }
+                        ) {
+                            Text("Hủy")
+                        }
+                    }
+
+                )
+            }
+            if (showEndTimePicker) { // hop chon gio ket thuc
+                val timePickerState = rememberTimePickerState(
+                    initialHour = selectedEndTime.hour,
+                    initialMinute = selectedEndTime.minute,
+                    is24Hour = true
+                )
+
+                AlertDialog(
+                    onDismissRequest = {
+                        showEndTimePicker = false
+                    },
+                    title = {
+                        Text("Chọn giờ kết thúc")
+                    },
+                    text = {
+                        TimePicker(state = timePickerState)
+                    },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                selectedEndTime = LocalTime.of(
+                                    timePickerState.hour,
+                                    timePickerState.minute
+                                )
+                                showEndTimePicker = false
+                                scheduleError = null
+                            }
+                        ) {
+                            Text("Xác nhận")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(
+                            onClick = {
+                                showEndTimePicker = false
+                            }
+                        ) {
+                            Text("Hủy")
+                        }
+                    }
+                )
             }
         }
     }
