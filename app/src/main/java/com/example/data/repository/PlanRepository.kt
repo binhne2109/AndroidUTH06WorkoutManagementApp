@@ -1,5 +1,6 @@
 package com.example.data.repository
 
+import com.example.data.local.FirestoreManager
 import com.example.data.model.WorkoutPlan
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.channels.awaitClose
@@ -12,8 +13,8 @@ import kotlinx.coroutines.tasks.await
  * Collection riêng "workout_plans", mỗi document chứa danh sách PlanItem nhúng bên trong.
  */
 class PlanRepository {
-    private val db = FirebaseFirestore.getInstance()
-    private val plansCollection = db.collection("workout_plans")
+    private val db: FirebaseFirestore = FirestoreManager.getFirestore()
+    private val plansCollection = db.collection(FirestoreManager.COLLECTION_PLANS)
 
     fun getAllPlans(userId: String): Flow<List<WorkoutPlan>> = callbackFlow {
         val subscription = plansCollection

@@ -58,7 +58,7 @@ fun CalendarScreen(
                     }
 
                 CalendarDay(
-                    date = day.date,
+                    date = day.date.dayOfMonth.toString(),
                     workouts = dayWorkouts
                 )
             }
