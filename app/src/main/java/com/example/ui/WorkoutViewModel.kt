@@ -20,12 +20,8 @@ class WorkoutViewModel : ViewModel() {
     private val repository = WorkoutRepository()
     private val authRepository = AuthRepository()
     // 2. Khởi tạo AuthRepository để lấy mã ID Firebase
-    val currentUserId: String
+    private val currentUserId: String
         get() = authRepository.currentUser?.uid ?: ""
-
-    fun showSnackbar(message: String) {
-        _uiState.update { it.copy(snackbarMessage = message) }
-    }
 
     // Bắt đầu với State rỗng (không dùng Mock Data nữa)
     private val _uiState = MutableStateFlow(WorkoutUiState(workouts = emptyList(), filteredWorkouts = emptyList()))

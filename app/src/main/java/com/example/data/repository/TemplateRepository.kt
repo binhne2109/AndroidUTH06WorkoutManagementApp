@@ -1,6 +1,5 @@
 package com.example.data.repository
 
-import com.example.data.local.FirestoreManager
 import com.example.data.model.WorkoutTemplate
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.channels.awaitClose
@@ -11,11 +10,12 @@ import kotlinx.coroutines.tasks.await
 /**
  * Repository quản lý Mẫu bài tập (Templates) trên Firestore.
  * Viết theo đúng khuôn mẫu của WorkoutRepository để đồng bộ phong cách code
- * trong dự án, dùng collection riêng "workout_templates" và hỗ trợ Offline Persistence.
+ * trong dự án, nhưng dùng collection riêng "workout_templates" để không
+ * đụng vào dữ liệu "workouts" (nhật ký bài tập) của các thành viên khác.
  */
 class TemplateRepository {
-    private val db: FirebaseFirestore = FirestoreManager.getFirestore()
-    private val templatesCollection = db.collection(FirestoreManager.COLLECTION_TEMPLATES)
+    private val db = FirebaseFirestore.getInstance()
+    private val templatesCollection = db.collection("workout_templates")
 
     fun getAllTemplates(userId: String): Flow<List<WorkoutTemplate>> = callbackFlow {
         val subscription = templatesCollection
