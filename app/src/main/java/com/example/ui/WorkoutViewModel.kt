@@ -87,14 +87,15 @@ class WorkoutViewModel : ViewModel() {
         durationMinutes: Int,
         caloriesBurned: Int,
         intensity: String,
-        notes: String
+        notes: String,
+        dateMillis: Long = System.currentTimeMillis(),
+        startTime: Long = dateMillis,
+        endTime: Long = startTime + durationMinutes * 60_000L
     ) {
         if (currentUserId.isBlank()) return
 
         val editing = _uiState.value.editingWorkout
 
-
-        // Phải đưa vào viewModelScope.launch để chạy ngầm Database
         viewModelScope.launch {
             if (editing != null) {
                 // Sửa bài tập
@@ -104,12 +105,21 @@ class WorkoutViewModel : ViewModel() {
                     durationMinutes = durationMinutes,
                     caloriesBurned = caloriesBurned,
                     intensity = intensity,
-                    notes = notes
+                    notes = notes,
+                    dateMillis = dateMillis,
+                    startTime = startTime,
+                    endTime = endTime
                 )
+
                 repository.update(updatedWorkout)
-                _uiState.update { it.copy(snackbarMessage = "Đã cập nhật bài tập") }
+                _uiState.update {
+                    it.copy(snackbarMessage = "Đã cập nhật bài tập")
+                }
             } else {
-                // Thêm mới: Room tự sinh ID, ta chỉ việc GẮN MÃ UID FIREBASE vào đây!
+                // Thêm bài tập mới
+                val start = System.currentTimeMillis()
+                val end = start + durationMinutes * 60_000L
+
                 val newWorkout = WorkoutEntity(
                     userId = currentUserId,
                     title = title,
@@ -118,14 +128,18 @@ class WorkoutViewModel : ViewModel() {
                     caloriesBurned = caloriesBurned,
                     intensity = intensity,
                     notes = notes,
-                    dateMillis = dateMillis,
-                    startTime = startTime,
-                    endTime = endTime,
+                    dateMillis = start,
+                    startTime = start,
+                    endTime = end,
                     completed = false
                 )
+
                 repository.insert(newWorkout)
-                _uiState.update { it.copy(snackbarMessage = "Đã thêm bài tập mới") }
+                _uiState.update {
+                    it.copy(snackbarMessage = "Đã thêm bài tập mới")
+                }
             }
+
             closeAddEditDialog()
         }
     }

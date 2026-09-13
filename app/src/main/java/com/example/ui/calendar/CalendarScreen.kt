@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import androidx.compose.runtime.snapshotFlow
+import com.example.data.model.WorkoutEntity
 
 @Composable
 fun CalendarScreen(
@@ -41,7 +42,7 @@ fun CalendarScreen(
     // Tháng đang hiển thị trên lịch
     var visibleMonth by remember { mutableStateOf(currentMonth) }
 
-    // Cập nhật tiêu đề khi người dùng vuốt sang tháng khác
+    // Cập nhật tiêu đề khi user vuốt sang tháng khác
     LaunchedEffect(calendarState) {
         snapshotFlow { calendarState.firstVisibleMonth.yearMonth }
             .distinctUntilChanged()
@@ -57,7 +58,7 @@ fun CalendarScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // Nút quay lại màn hình trước / màn hình chính
+        // Nút quay lại màn hình chính
         Button(
             onClick = onBack,
             modifier = Modifier.align(Alignment.Start)
@@ -68,7 +69,8 @@ fun CalendarScreen(
         Spacer(modifier = Modifier.height(12.dp))
 
         Text(
-            text = "Tháng ${visibleMonth.monthValue} năm ${visibleMonth.year}, Số workout: ${workouts.size}",
+            text = "Tháng ${visibleMonth.monthValue} năm ${visibleMonth.year}," +
+                    " Số workout: ${workouts.size}",
 
             style = MaterialTheme.typography.headlineSmall
         )
@@ -77,9 +79,7 @@ fun CalendarScreen(
 
         HorizontalCalendar(
             state = calendarState,
-            modifier = Modifier
-                .fillMaxWidth()
-                .wrapContentHeight(),
+            modifier = Modifier.fillMaxWidth().wrapContentHeight(),
             dayContent = { day ->
                 val dayWorkouts = workoutsByDate[day.date].orEmpty() // Hiển thị ô ngày bằng day.date và dayWorkouts
                 val dayColor = getWorkoutColor(dayWorkouts)
