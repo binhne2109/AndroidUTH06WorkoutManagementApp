@@ -1,17 +1,17 @@
 package com.example.ui
-import kotlinx.coroutines.Job
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.data.model.WorkoutEntity
 import com.example.data.repository.AuthRepository
 import com.example.data.repository.WorkoutRepository
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.LocalTime
 
 // Kế thừa AndroidViewModel để lấy được Context khởi tạo Room Database
 class WorkoutViewModel : ViewModel() {
@@ -87,13 +87,15 @@ class WorkoutViewModel : ViewModel() {
         durationMinutes: Int,
         caloriesBurned: Int,
         intensity: String,
-        notes: String
+        notes: String,
+        dateMillis: Long = System.currentTimeMillis(),
+        startTime: Long = dateMillis,
+        endTime: Long = startTime + durationMinutes * 60_000L
     ) {
         if (currentUserId.isBlank()) return
 
         val editing = _uiState.value.editingWorkout
 
-        // Phải đưa vào viewModelScope.launch để chạy ngầm Database
         viewModelScope.launch {
             if (editing != null) {
                 // Sửa bài tập
@@ -103,12 +105,21 @@ class WorkoutViewModel : ViewModel() {
                     durationMinutes = durationMinutes,
                     caloriesBurned = caloriesBurned,
                     intensity = intensity,
-                    notes = notes
+                    notes = notes,
+                    dateMillis = dateMillis,
+                    startTime = startTime,
+                    endTime = endTime
                 )
+
                 repository.update(updatedWorkout)
-                _uiState.update { it.copy(snackbarMessage = "Đã cập nhật bài tập") }
+                _uiState.update {
+                    it.copy(snackbarMessage = "Đã cập nhật bài tập")
+                }
             } else {
-                // Thêm mới: Room tự sinh ID, ta chỉ việc GẮN MÃ UID FIREBASE vào đây!
+                // Thêm bài tập mới
+                val start = System.currentTimeMillis()
+                val end = start + durationMinutes * 60_000L
+
                 val newWorkout = WorkoutEntity(
                     userId = currentUserId,
                     title = title,
@@ -116,11 +127,19 @@ class WorkoutViewModel : ViewModel() {
                     durationMinutes = durationMinutes,
                     caloriesBurned = caloriesBurned,
                     intensity = intensity,
-                    notes = notes
+                    notes = notes,
+                    dateMillis = start,
+                    startTime = start,
+                    endTime = end,
+                    completed = false
                 )
+
                 repository.insert(newWorkout)
-                _uiState.update { it.copy(snackbarMessage = "Đã thêm bài tập mới") }
+                _uiState.update {
+                    it.copy(snackbarMessage = "Đã thêm bài tập mới")
+                }
             }
+
             closeAddEditDialog()
         }
     }

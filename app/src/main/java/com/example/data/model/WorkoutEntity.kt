@@ -12,6 +12,7 @@ data class WorkoutEntity(
     val intensity: String = "Medium",
     val dateMillis: Long = System.currentTimeMillis(),
     val startTime: Long = dateMillis, // thoi diem bat dau
+    val endTime: Long = startTime + durationMinutes * 60_000L,
     val completed: Boolean = false,   // thoi dien hoan thanh
     val notes: String = ""
 )

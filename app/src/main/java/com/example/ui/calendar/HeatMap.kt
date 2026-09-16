@@ -34,3 +34,14 @@ fun heatMapColor(level: Int): Color {
         else -> Color(0xFF1B5E20)
     }
 }
+fun getWorkoutColor(workouts: List<WorkoutEntity>): Color {
+    val hasMissedWorkout = workouts.any {
+        it.getStatus() == WorkoutStatus.MISSED
+    }
+
+    return if (hasMissedWorkout) {
+        Color(0xFFFFCDD2) // Đỏ nhạt: có workout bị bỏ lỡ
+    } else {
+        heatMapColor(calculateHeatLevel(workouts))
+    }
+}

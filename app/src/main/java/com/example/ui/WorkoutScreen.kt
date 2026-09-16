@@ -16,6 +16,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.ui.components.*
+import androidx.compose.material.icons.filled.CalendarMonth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -23,6 +24,7 @@ fun WorkoutScreen(
     viewModel: WorkoutViewModel,
     onLogout: () -> Unit,
     modifier: Modifier = Modifier,
+    onOpenCalendar: () -> Unit = {}, 
     onOpenTemplates: () -> Unit = {}, //  mở màn hình Mẫu & Kế hoạch tập
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -46,6 +48,13 @@ fun WorkoutScreen(
                         Icon(
                             imageVector = Icons.Default.Bookmarks,
                             contentDescription = "Mẫu & Kế hoạch tập"
+                        )
+                    }
+                    // Mở lịch tập
+                    IconButton(onClick = onOpenCalendar) {
+                        Icon(
+                            imageVector = Icons.Default.CalendarMonth,
+                            contentDescription = "Mở lịch tập"
                         )
                     }
                     IconButton(onClick = onLogout) {
