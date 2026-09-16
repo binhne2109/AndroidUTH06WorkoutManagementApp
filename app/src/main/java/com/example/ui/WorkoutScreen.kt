@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Bookmarks // [Thành viên 6] icon Mẫu & Kế hoạch tập
+import androidx.compose.material.icons.filled.FileDownload // [Thành viên 1] icon Xuất dữ liệu
 import androidx.compose.material3.*
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material3.Icon
@@ -29,6 +30,7 @@ fun WorkoutScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    var isExportDialogOpen by remember { mutableStateOf(false) }
 
     LaunchedEffect(uiState.snackbarMessage) {
         uiState.snackbarMessage?.let {
@@ -43,6 +45,13 @@ fun WorkoutScreen(
             TopAppBar(
                 title = { Text("Android_UTH_06", fontWeight = FontWeight.ExtraBold) },
                 actions = {
+                    // [Thành viên 1] Xuất dữ liệu lịch sử tập luyện (.csv / .json)
+                    IconButton(onClick = { isExportDialogOpen = true }) {
+                        Icon(
+                            imageVector = Icons.Default.FileDownload,
+                            contentDescription = "Xuất dữ liệu"
+                        )
+                    }
                     // [Thành viên 6] Lối vào tính năng Mẫu bài tập & Kế hoạch tập
                     IconButton(onClick = onOpenTemplates) {
                         Icon(
@@ -61,7 +70,6 @@ fun WorkoutScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ExitToApp,
                             contentDescription = "Đăng Xuất"
-
                         )
                     }
                 }
@@ -127,6 +135,17 @@ fun WorkoutScreen(
             workout = target,
             onConfirm = viewModel::confirmDeleteWorkout,
             onDismiss = viewModel::cancelDeleteWorkout
+        )
+    }
+
+    if (isExportDialogOpen) {
+        ExportDialog(
+            workouts = uiState.workouts,
+            userId = viewModel.currentUserId,
+            onDismiss = { isExportDialogOpen = false },
+            onExportSuccess = { msg ->
+                viewModel.showSnackbar(msg)
+            }
         )
     }
 }
