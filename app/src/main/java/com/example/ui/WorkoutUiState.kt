@@ -10,7 +10,9 @@ data class WorkoutUiState(
     val isAddEditSheetOpen: Boolean = false,
     val editingWorkout: WorkoutEntity? = null,
     val deletingWorkout: WorkoutEntity? = null,
-    val snackbarMessage: String? = null
+    val snackbarMessage: String? = null,
+    val searchLocation: String = "",
+    val selectedDateMillis: Long? = null,
 ) {
     val totalWorkouts: Int get() = workouts.size
     val totalDurationMinutes: Int get() = workouts.sumOf { it.durationMinutes }

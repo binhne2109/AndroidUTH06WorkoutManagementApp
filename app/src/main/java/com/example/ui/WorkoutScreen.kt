@@ -126,8 +126,20 @@ fun WorkoutScreen(
         WorkoutAddEditSheet(
             editingWorkout = uiState.editingWorkout,
             onDismiss = viewModel::closeAddEditDialog,
-            onSave = viewModel::saveWorkout
-        )
+            onSave = { title, category, duration, calories, intensity, notes, location, dateMillis, startTime, endTime ->
+                viewModel.saveWorkout(
+                    title = title,
+                    category = category,
+                    durationMinutes = duration,
+                    caloriesBurned = calories,
+                    intensity = intensity,
+                    notes = notes,
+                    location = location,
+                    dateMillis = dateMillis,
+                    startTime = startTime,
+                    endTime = endTime
+                )
+            }        )
     }
 
     uiState.deletingWorkout?.let { target ->

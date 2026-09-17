@@ -56,10 +56,15 @@ fun CalendarScreen(
                     workouts.filter {
                         it.dateMillis.toLocalDate() == day.date
                     }
-
+                val heatMapColor = if (dayWorkouts.isNotEmpty()) {
+                    MaterialTheme.colorScheme.primary // Có bài tập thì tô màu chính của app
+                } else {
+                    Color.Transparent // Không có bài tập thì để trong suốt
+                }
                 CalendarDay(
                     date = day.date,
-                    workouts = dayWorkouts
+                    workouts = dayWorkouts,
+                    dayColor = heatMapColor
                 )
             }
         )

@@ -30,6 +30,7 @@ fun WorkoutAddEditSheet(
         calories: Int,
         intensity: String,
         notes: String,
+        location: String, // <--- 1. MỚI THÊM: Cập nhật tham số của hàm onSave
         dateMillis: Long,
         startTime: Long,
         endTime: Long
@@ -40,6 +41,9 @@ fun WorkoutAddEditSheet(
     var duration by remember(editingWorkout) { mutableStateOf(editingWorkout?.durationMinutes?.toString() ?: "30") }
     var calories by remember(editingWorkout) { mutableStateOf(editingWorkout?.caloriesBurned?.toString() ?: "200") }
     var notes by remember(editingWorkout) { mutableStateOf(editingWorkout?.notes ?: "") }
+
+    // <--- 2. MỚI THÊM: Khai báo biến lưu trạng thái Địa điểm
+    var location by remember(editingWorkout) { mutableStateOf(editingWorkout?.location ?: "") }
 
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
     var selectedStartTime by remember { mutableStateOf(LocalTime.of(18, 0)) }
@@ -79,6 +83,16 @@ fun WorkoutAddEditSheet(
                 value = category,
                 onValueChange = { category = it },
                 label = { Text("Phân loại (Strength, Cardio, HIIT, Yoga,...)") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // <--- 3. MỚI THÊM: Ô nhập liệu Địa điểm
+            OutlinedTextField(
+                value = location,
+                onValueChange = { location = it },
+                label = { Text("Địa điểm tập (VD: Gym, Công viên)") },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -183,8 +197,12 @@ fun WorkoutAddEditSheet(
                             .toInstant()
                             .toEpochMilli()
 
+                        // Validate thêm nếu cần thiết
                         if (title.isBlank()) {
                             scheduleError = "Vui lòng nhập tên bài tập"
+                        } else if (location.isBlank()) {
+                            // Bạn có thể thêm validate cho location ở đây nếu muốn báo lỗi đỏ trực tiếp trên UI
+                            scheduleError = "Vui lòng nhập địa điểm tập"
                         } else if (endMillis <= startMillis) {
                             scheduleError = "Giờ kết thúc phải sau giờ bắt đầu"
                         } else {
@@ -195,6 +213,7 @@ fun WorkoutAddEditSheet(
                                 .toInstant()
                                 .toEpochMilli()
 
+                            // <--- 4. MỚI THÊM: Truyền location vào hàm onSave
                             onSave(
                                 title.trim(),
                                 category,
@@ -202,6 +221,7 @@ fun WorkoutAddEditSheet(
                                 calories.toIntOrNull() ?: 200,
                                 "Medium",
                                 notes.trim(),
+                                location.trim(),
                                 dateMillis,
                                 startMillis,
                                 endMillis

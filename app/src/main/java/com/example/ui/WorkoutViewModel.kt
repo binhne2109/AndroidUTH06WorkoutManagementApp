@@ -92,12 +92,20 @@ class WorkoutViewModel : ViewModel() {
         caloriesBurned: Int,
         intensity: String,
         notes: String,
+        location: String,
         dateMillis: Long = System.currentTimeMillis(),
         startTime: Long = dateMillis,
         endTime: Long = startTime + durationMinutes * 60_000L
     ) {
         if (currentUserId.isBlank()) return
-
+        if (title.isBlank()) {
+            _uiState.update { it.copy(snackbarMessage = "Lỗi: Tên bài tập không được để trống!") }
+            return
+        }
+        if (durationMinutes <= 0) {
+            _uiState.update { it.copy(snackbarMessage = "Lỗi: Thời lượng tập phải lớn hơn 0 phút!") }
+            return
+        }
         val editing = _uiState.value.editingWorkout
 
         viewModelScope.launch {

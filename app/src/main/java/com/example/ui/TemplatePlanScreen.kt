@@ -119,7 +119,18 @@ fun TemplatePlanScreen(
                                 PlanCard(
                                     plan = plan,
                                     onStartClick = { selected ->
-                                        templateViewModel.startPlan(selected, workoutViewModel::saveWorkout)
+                                        // --- ĐÃ FIX LỖI TẠI ĐÂY ---
+                                        templateViewModel.startPlan(selected) { title, cat, dur, cal, int, notes ->
+                                            workoutViewModel.saveWorkout(
+                                                title = title,
+                                                category = cat,
+                                                durationMinutes = dur,
+                                                caloriesBurned = cal,
+                                                intensity = int,
+                                                notes = notes,
+                                                location = "Chưa xác định" // Tham số mới
+                                            )
+                                        }
                                     },
                                     onEditClick = templateViewModel::openEditPlanEditor,
                                     onDeleteClick = templateViewModel::requestDeletePlan
@@ -147,7 +158,16 @@ fun TemplatePlanScreen(
             template = template,
             onDismiss = templateViewModel::clearTemplateToApply,
             onConfirm = { title, category, duration, calories, intensity, notes ->
-                workoutViewModel.saveWorkout(title, category, duration, calories, intensity, notes)
+                // --- ĐÃ FIX LỖI TẠI ĐÂY ---
+                workoutViewModel.saveWorkout(
+                    title = title,
+                    category = category,
+                    durationMinutes = duration,
+                    caloriesBurned = calories,
+                    intensity = intensity,
+                    notes = notes,
+                    location = "Chưa xác định" // Tham số mới
+                )
                 templateViewModel.clearTemplateToApply()
             }
         )

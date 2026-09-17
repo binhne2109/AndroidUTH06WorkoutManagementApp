@@ -14,5 +14,9 @@ data class WorkoutEntity(
     val startTime: Long = dateMillis, // thoi diem bat dau
     val endTime: Long = startTime + durationMinutes * 60_000L,
     val completed: Boolean = false,   // thoi dien hoan thanh
-    val notes: String = ""
+    val notes: String = "",
+    val startTimeMillis: Long = 0L,
+    val recurringDays: Int = 0,
+    val location: String = "",
+    val status: String = "In-progress"
 )
