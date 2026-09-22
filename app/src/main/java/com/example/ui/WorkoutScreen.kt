@@ -4,11 +4,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.*
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -22,6 +21,7 @@ fun WorkoutScreen(
     viewModel: WorkoutViewModel,
     onLogout: () -> Unit,
     modifier: Modifier = Modifier,
+    onNavigateToStatistics: () -> Unit = {} // Bổ sung tham số an toàn không phá code cũ
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -39,11 +39,17 @@ fun WorkoutScreen(
             TopAppBar(
                 title = { Text("Android_UTH_06", fontWeight = FontWeight.ExtraBold) },
                 actions = {
+                    // Nút chuyển sang màn hình Thống kê & Biểu đồ
+                    IconButton(onClick = onNavigateToStatistics) {
+                        Icon(
+                            imageVector = Icons.Default.BarChart,
+                            contentDescription = "Thống kê"
+                        )
+                    }
                     IconButton(onClick = onLogout) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ExitToApp,
                             contentDescription = "Đăng Xuất"
-
                         )
                     }
                 }
