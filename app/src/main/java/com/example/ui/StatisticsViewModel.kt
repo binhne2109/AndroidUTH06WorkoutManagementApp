@@ -9,31 +9,62 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
+// Data class chứa thông tin thống kê theo nhóm bài tập
+data class CategoryStat(
+    val categoryName: String,
+    val totalMinutes: Int,
+    val totalCalories: Int
+)
+
+data class StatisticsUiState(
+    val totalCalories: Int = 0,
+    val totalDurationMinutes: Int = 0,
+    val completedWorkoutsCount: Int = 0,
+    val targetWorkouts: Int = 4,
+    val targetDurationMinutes: Int = 180,
+    val categoryStats: List<CategoryStat> = emptyList()
+) {
+    val workoutProgress: Float
+        get() = if (targetWorkouts > 0) (completedWorkoutsCount.toFloat() / targetWorkouts).coerceAtMost(1f) else 0f
+
+    val durationProgress: Float
+        get() = if (targetDurationMinutes > 0) (totalDurationMinutes.toFloat() / targetDurationMinutes).coerceAtMost(1f) else 0f
+}
+
 class StatisticsViewModel : ViewModel() {
 
-    // Khai báo Producer quản lý dữ liệu hiển thị cho Vico Chart
     val chartEntryModelProducer = ChartEntryModelProducer()
 
     private val _uiState = MutableStateFlow(StatisticsUiState())
     val uiState: StateFlow<StatisticsUiState> = _uiState.asStateFlow()
 
+    // 1. Cập nhật dữ liệu bài tập & Thống kê theo từng nhóm bài tập
     fun updateDataFromWorkouts(workouts: List<WorkoutEntity>) {
-        // 1. Tính tổng số liệu từ danh sách bài tập WorkoutEntity
         val totalMin = workouts.sumOf { it.durationMinutes }
         val totalCal = workouts.sumOf { it.caloriesBurned }
         val totalCount = workouts.size
+
+        // Gom nhóm thống kê theo loại/nhóm bài tập (category)
+        val statsByCategory = workouts.groupBy { it.category }
+            .map { (category, list) ->
+                CategoryStat(
+                    categoryName = category.ifEmpty { "Khác" },
+                    totalMinutes = list.sumOf { it.durationMinutes },
+                    totalCalories = list.sumOf { it.caloriesBurned }
+                )
+            }
 
         _uiState.update { currentState ->
             currentState.copy(
                 totalDurationMinutes = totalMin,
                 totalCalories = totalCal,
-                completedWorkoutsCount = totalCount
+                completedWorkoutsCount = totalCount,
+                categoryStats = statsByCategory
             )
         }
 
-        // 2. Cập nhật dữ liệu thời lượng vào 7 cột trên biểu đồ Vico Chart
+        // Cập nhật dữ liệu biểu đồ Vico
         val weeklyMinutes = FloatArray(7) { 0f }
-
         if (workouts.isNotEmpty()) {
             weeklyMinutes[0] = totalMin.toFloat()
         }
@@ -42,25 +73,16 @@ class StatisticsViewModel : ViewModel() {
             entryOf(index.toFloat(), minutes)
         }
 
-        // 3. Đẩy mảng dữ liệu mới vào Vico Chart Producer
         chartEntryModelProducer.setEntries(entries)
     }
-}
 
-// Data class chứa đầy đủ tất cả thuộc tính cho màn hình Thống kê & Biểu đồ
-data class StatisticsUiState(
-    val totalCalories: Int = 0,
-    val totalDurationMinutes: Int = 0,
-    val completedWorkoutsCount: Int = 0,
-    val targetWorkouts: Int = 4,
-    val targetDurationMinutes: Int = 180,
-    val currentGoal: Int = 4
-) {
-    // Tiến độ số buổi tập (từ 0.0 đến 1.0)
-    val workoutProgress: Float
-        get() = if (targetWorkouts > 0) (completedWorkoutsCount.toFloat() / targetWorkouts).coerceAtMost(1f) else 0f
-
-    // Tiến độ thời lượng tập luyện (từ 0.0 đến 1.0)
-    val durationProgress: Float
-        get() = if (targetDurationMinutes > 0) (totalDurationMinutes.toFloat() / targetDurationMinutes).coerceAtMost(1f) else 0f
+    // 2. Tính năng Thiết lập Mục tiêu (Goals): Cho phép người dùng tùy chỉnh chỉ tiêu
+    fun updateGoals(newTargetWorkouts: Int, newTargetDurationMinutes: Int) {
+        _uiState.update { currentState ->
+            currentState.copy(
+                targetWorkouts = newTargetWorkouts,
+                targetDurationMinutes = newTargetDurationMinutes
+            )
+        }
+    }
 }
