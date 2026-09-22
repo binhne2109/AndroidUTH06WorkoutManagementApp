@@ -2,6 +2,7 @@ package com.example.ui.stats
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,11 +12,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -23,8 +28,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -44,14 +48,30 @@ import com.patrykandpatrick.vico.compose.axis.vertical.rememberStartAxis
 import com.patrykandpatrick.vico.compose.chart.Chart
 import com.patrykandpatrick.vico.compose.chart.column.columnChart
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StatisticsScreen(
-    viewModel: StatisticsViewModel
+    viewModel: StatisticsViewModel,
+    onBack: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var showGoalDialog by remember { mutableStateOf(false) }
 
-    Scaffold { innerPadding ->
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Thống kê & Biểu đồ", fontWeight = FontWeight.Bold) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Quay lại"
+                        )
+                    }
+                }
+            )
+        }
+    ) { innerPadding: PaddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -60,12 +80,6 @@ fun StatisticsScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text(
-                text = "Thống kê & Biểu đồ tiến độ",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
-            )
-
             // 1. Thẻ Tổng quan hoạt động
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -91,7 +105,10 @@ fun StatisticsScreen(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(containerColor = Color(0xFFE8F5E9))
                 ) {
-                    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
                         Text(text = "Thống kê theo nhóm bài tập", fontWeight = FontWeight.Bold, fontSize = 14.sp)
                         uiState.categoryStats.forEach { stat ->
                             Row(
@@ -105,7 +122,7 @@ fun StatisticsScreen(
                                     color = Color.DarkGray
                                 )
                             }
-                            Divider(color = Color.LightGray.copy(alpha = 0.5f))
+                            HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
                         }
                     }
                 }
@@ -133,14 +150,14 @@ fun StatisticsScreen(
 
                     Text(text = "Số buổi tập: ${uiState.completedWorkoutsCount} / ${uiState.targetWorkouts}", fontSize = 13.sp)
                     LinearProgressIndicator(
-                        progress = uiState.workoutProgress,
+                        progress = { uiState.workoutProgress },
                         modifier = Modifier.fillMaxWidth().height(8.dp)
                     )
 
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(text = "Thời lượng: ${uiState.totalDurationMinutes} / ${uiState.targetDurationMinutes} phút", fontSize = 13.sp)
                     LinearProgressIndicator(
-                        progress = uiState.durationProgress,
+                        progress = { uiState.durationProgress },
                         modifier = Modifier.fillMaxWidth().height(8.dp)
                     )
                 }

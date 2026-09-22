@@ -7,6 +7,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.Bookmarks // [Thành viên 6] icon Mẫu & Kế hoạch tập
+import androidx.compose.material.icons.filled.FileDownload // [Thành viên 1] icon Xuất dữ liệu
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -14,6 +16,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.ui.components.*
+import androidx.compose.material.icons.filled.CalendarMonth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -21,10 +24,13 @@ fun WorkoutScreen(
     viewModel: WorkoutViewModel,
     onLogout: () -> Unit,
     modifier: Modifier = Modifier,
-    onNavigateToStatistics: () -> Unit = {} // Bổ sung tham số an toàn không phá code cũ
+    onNavigateToStatistics: () -> Unit,
+    onOpenCalendar: () -> Unit = {},
+    onOpenTemplates: () -> Unit = {}, //  mở màn hình Mẫu & Kế hoạch tập
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    var isExportDialogOpen by remember { mutableStateOf(false) }
 
     LaunchedEffect(uiState.snackbarMessage) {
         uiState.snackbarMessage?.let {
@@ -46,10 +52,32 @@ fun WorkoutScreen(
                             contentDescription = "Thống kê"
                         )
                     }
+                    // [Thành viên 1] Xuất dữ liệu lịch sử tập luyện (.csv / .json)
+                    IconButton(onClick = { isExportDialogOpen = true }) {
+                        Icon(
+                            imageVector = Icons.Default.FileDownload,
+                            contentDescription = "Xuất dữ liệu"
+                        )
+                    }
+                    // [Thành viên 6] Lối vào tính năng Mẫu bài tập & Kế hoạch tập
+                    IconButton(onClick = onOpenTemplates) {
+                        Icon(
+                            imageVector = Icons.Default.Bookmarks,
+                            contentDescription = "Mẫu & Kế hoạch tập"
+                        )
+                    }
+                    // Mở lịch tập
+                    IconButton(onClick = onOpenCalendar) {
+                        Icon(
+                            imageVector = Icons.Default.CalendarMonth,
+                            contentDescription = "Mở lịch tập"
+                        )
+                    }
                     IconButton(onClick = onLogout) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ExitToApp,
                             contentDescription = "Đăng Xuất"
+
                         )
                     }
                 }

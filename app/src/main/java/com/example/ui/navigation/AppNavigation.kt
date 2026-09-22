@@ -12,15 +12,21 @@ import com.example.ui.AuthViewModel
 import com.example.ui.LoginScreen
 import com.example.ui.RegisterScreen
 import com.example.ui.StatisticsViewModel
+import com.example.ui.TemplatePlanScreen
+import com.example.ui.TemplatePlanViewModel
 import com.example.ui.WorkoutScreen
 import com.example.ui.WorkoutViewModel
+import com.example.ui.calendar.CalendarScreen
+import com.example.ui.calendar.CalendarViewModel
 import com.example.ui.stats.StatisticsScreen
 
 object Route {
     const val LOGIN = "login"
     const val REGISTER = "register"
     const val WORKOUT_LIST = "workout_list"
-    const val STATISTICS = "statistics" // Bổ sung Route cho màn hình Thống kê
+    const val STATISTICS = "statistics"
+    const val TEMPLATES_PLANS = "templates_plans"
+    const val CALENDAR = "calendar"
 }
 
 @Composable
@@ -28,9 +34,9 @@ fun AppNavigation() {
     val navController = rememberNavController()
     val authViewModel: AuthViewModel = viewModel()
     val workoutViewModel: WorkoutViewModel = viewModel()
+    val templatePlanViewModel: TemplatePlanViewModel = viewModel()
+    val calendarViewModel: CalendarViewModel = viewModel()
 
-    // LẤY TRẠNG THÁI TỪ FIREBASE:
-    // Nếu đã đăng nhập -> vô thẳng WORKOUT_LIST, nếu chưa -> bắt đầu từ LOGIN
     val startDestination = if (authViewModel.isUserLoggedIn) Route.WORKOUT_LIST else Route.LOGIN
 
     NavHost(
@@ -50,6 +56,7 @@ fun AppNavigation() {
                 }
             )
         }
+
         composable(Route.REGISTER) {
             RegisterScreen(
                 authViewModel = authViewModel,
@@ -63,6 +70,7 @@ fun AppNavigation() {
                 },
             )
         }
+
         composable(Route.WORKOUT_LIST) {
             LaunchedEffect(key1 = Unit) {
                 workoutViewModel.loadWorkouts()
@@ -76,25 +84,44 @@ fun AppNavigation() {
                         popUpTo(Route.WORKOUT_LIST) { inclusive = true }
                     }
                 },
-                // Kết nối nút bấm chuyển sang Thống kê
                 onNavigateToStatistics = {
                     navController.navigate(Route.STATISTICS)
+                },
+                onOpenTemplates = {
+                    navController.navigate(Route.TEMPLATES_PLANS)
+                },
+                onOpenCalendar = {
+                    navController.navigate(Route.CALENDAR)
                 }
             )
         }
 
-        // [Thành viên 4] Màn hình Thống kê & Biểu đồ
+        composable(Route.TEMPLATES_PLANS) {
+            TemplatePlanScreen(
+                templateViewModel = templatePlanViewModel,
+                workoutViewModel = workoutViewModel,
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Route.CALENDAR) {
+            CalendarScreen(
+                viewModel = calendarViewModel,
+                onBack = { navController.popBackStack() }
+            )
+        }
+
         composable(Route.STATISTICS) {
             val statisticsViewModel: StatisticsViewModel = viewModel()
             val workoutUiState by workoutViewModel.uiState.collectAsStateWithLifecycle()
 
-            // TỰ ĐỘNG ĐỒNG BỘ: Cập nhật dữ liệu Thống kê ngay khi danh sách bài tập thay đổi
             LaunchedEffect(workoutUiState.filteredWorkouts) {
                 statisticsViewModel.updateDataFromWorkouts(workoutUiState.filteredWorkouts)
             }
 
             StatisticsScreen(
-                viewModel = statisticsViewModel
+                viewModel = statisticsViewModel,
+                onBack = { navController.popBackStack() }
             )
         }
     }
