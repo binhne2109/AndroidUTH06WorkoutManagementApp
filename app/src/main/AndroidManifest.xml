@@ -6,6 +6,13 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />
 
+    <!-- Quyền gửi thông báo cho Android 13+ (API 33) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- Quyền đặt báo thức chính xác cho Android 12+ (API 31/33) -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+
     <application
         android:name=".WorkoutApplication"
         android:allowBackup="true"
@@ -28,6 +35,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Đăng ký WorkoutAlarmReceiver để Android OS nhận diện bộ nhận báo thức -->
+        <receiver
+            android:name=".receiver.WorkoutAlarmReceiver"
+            android:exported="false" />
 
         <!-- [Thành viên 1] FileProvider phục vụ chia sẻ tệp xuất CSV/JSON an toàn -->
         <provider

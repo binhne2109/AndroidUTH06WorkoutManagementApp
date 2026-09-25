@@ -45,9 +45,33 @@ fun WorkoutAddEditSheet(
     // <--- 2. MỚI THÊM: Khai báo biến lưu trạng thái Địa điểm
     var location by remember(editingWorkout) { mutableStateOf(editingWorkout?.location ?: "") }
 
-    var selectedDate by remember { mutableStateOf(LocalDate.now()) }
-    var selectedStartTime by remember { mutableStateOf(LocalTime.of(18, 0)) }
-    var selectedEndTime by remember { mutableStateOf(LocalTime.of(19, 0)) }
+    var selectedDate by remember(editingWorkout) {
+        mutableStateOf(
+            editingWorkout?.let {
+                Instant.ofEpochMilli(it.dateMillis).atZone(ZoneId.systemDefault()).toLocalDate()
+            } ?: LocalDate.now()
+        )
+    }
+    var selectedStartTime by remember(editingWorkout) {
+        mutableStateOf(
+            editingWorkout?.let {
+                val timeMs = if (it.startTimeMillis > 0) it.startTimeMillis else if (it.startTime > 0) it.startTime else 0L
+                if (timeMs > 0) {
+                    Instant.ofEpochMilli(timeMs).atZone(ZoneId.systemDefault()).toLocalTime()
+                } else LocalTime.of(18, 0)
+            } ?: LocalTime.of(18, 0)
+        )
+    }
+    var selectedEndTime by remember(editingWorkout) {
+        mutableStateOf(
+            editingWorkout?.let {
+                val timeMs = if (it.endTime > 0) it.endTime else 0L
+                if (timeMs > 0) {
+                    Instant.ofEpochMilli(timeMs).atZone(ZoneId.systemDefault()).toLocalTime()
+                } else LocalTime.of(19, 0)
+            } ?: LocalTime.of(19, 0)
+        )
+    }
     var showDatePicker by remember { mutableStateOf(false) }
     var showStartTimePicker by remember { mutableStateOf(false) }
     var showEndTimePicker by remember { mutableStateOf(false) }

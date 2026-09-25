@@ -1,9 +1,12 @@
 package com.example.ui
-import androidx.lifecycle.ViewModel
+
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.data.model.WorkoutEntity
 import com.example.data.repository.AuthRepository
 import com.example.data.repository.WorkoutRepository
+import com.example.util.AlarmScheduler
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,12 +16,11 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalTime
 
-// Kế thừa AndroidViewModel để lấy được Context khởi tạo Room Database
-class WorkoutViewModel : ViewModel() {
+class WorkoutViewModel(application: Application) : AndroidViewModel(application) {
     private var workoutJob: Job? = null
-    // 1. Khởi tạo Database và kết nối Repository
     private val repository = WorkoutRepository()
     private val authRepository = AuthRepository()
+    private val alarmScheduler = AlarmScheduler(application)
     // 2. Khởi tạo AuthRepository để lấy mã ID Firebase
     val currentUserId: String
         get() = authRepository.currentUser?.uid ?: ""
@@ -109,30 +111,30 @@ class WorkoutViewModel : ViewModel() {
         val editing = _uiState.value.editingWorkout
 
         viewModelScope.launch {
+            val workoutToSave: WorkoutEntity
             if (editing != null) {
                 // Sửa bài tập
-                val updatedWorkout = editing.copy(
+                workoutToSave = editing.copy(
                     title = title,
                     category = category,
                     durationMinutes = durationMinutes,
                     caloriesBurned = caloriesBurned,
                     intensity = intensity,
                     notes = notes,
+                    location = location,
                     dateMillis = dateMillis,
                     startTime = startTime,
-                    endTime = endTime
+                    endTime = endTime,
+                    startTimeMillis = startTime
                 )
 
-                repository.update(updatedWorkout)
+                repository.update(workoutToSave)
                 _uiState.update {
                     it.copy(snackbarMessage = "Đã cập nhật bài tập")
                 }
             } else {
-                // Thêm bài tập mới
-                val start = System.currentTimeMillis()
-                val end = start + durationMinutes * 60_000L
-
-                val newWorkout = WorkoutEntity(
+                // Thêm bài tập mới (Dùng thời gian do người dùng chọn trên giao diện)
+                workoutToSave = WorkoutEntity(
                     userId = currentUserId,
                     title = title,
                     category = category,
@@ -140,17 +142,22 @@ class WorkoutViewModel : ViewModel() {
                     caloriesBurned = caloriesBurned,
                     intensity = intensity,
                     notes = notes,
-                    dateMillis = start,
-                    startTime = start,
-                    endTime = end,
+                    location = location,
+                    dateMillis = dateMillis,
+                    startTime = startTime,
+                    endTime = endTime,
+                    startTimeMillis = startTime,
                     completed = false
                 )
 
-                repository.insert(newWorkout)
+                repository.insert(workoutToSave)
                 _uiState.update {
                     it.copy(snackbarMessage = "Đã thêm bài tập mới")
                 }
             }
+
+            // Tự động lên lịch báo thức thông báo dựa trên startTimeMillis
+            alarmScheduler.scheduleWorkoutAlarm(workoutToSave)
 
             closeAddEditDialog()
         }
