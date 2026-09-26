@@ -4,13 +4,12 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Bookmarks // [Thành viên 6] icon Mẫu & Kế hoạch tập
 import androidx.compose.material.icons.filled.FileDownload // [Thành viên 1] icon Xuất dữ liệu
 import androidx.compose.material3.*
-import androidx.compose.material.icons.automirrored.filled.ExitToApp
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -25,7 +24,8 @@ fun WorkoutScreen(
     viewModel: WorkoutViewModel,
     onLogout: () -> Unit,
     modifier: Modifier = Modifier,
-    onOpenCalendar: () -> Unit = {}, 
+    onNavigateToStatistics: () -> Unit,
+    onOpenCalendar: () -> Unit = {},
     onOpenTemplates: () -> Unit = {}, //  mở màn hình Mẫu & Kế hoạch tập
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -45,6 +45,13 @@ fun WorkoutScreen(
             TopAppBar(
                 title = { Text("Android_UTH_06", fontWeight = FontWeight.ExtraBold) },
                 actions = {
+                    // Nút chuyển sang màn hình Thống kê & Biểu đồ
+                    IconButton(onClick = onNavigateToStatistics) {
+                        Icon(
+                            imageVector = Icons.Default.BarChart,
+                            contentDescription = "Thống kê"
+                        )
+                    }
                     // [Thành viên 1] Xuất dữ liệu lịch sử tập luyện (.csv / .json)
                     IconButton(onClick = { isExportDialogOpen = true }) {
                         Icon(
@@ -70,6 +77,7 @@ fun WorkoutScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ExitToApp,
                             contentDescription = "Đăng Xuất"
+
                         )
                     }
                 }
@@ -126,20 +134,8 @@ fun WorkoutScreen(
         WorkoutAddEditSheet(
             editingWorkout = uiState.editingWorkout,
             onDismiss = viewModel::closeAddEditDialog,
-            onSave = { title, category, duration, calories, intensity, notes, location, dateMillis, startTime, endTime ->
-                viewModel.saveWorkout(
-                    title = title,
-                    category = category,
-                    durationMinutes = duration,
-                    caloriesBurned = calories,
-                    intensity = intensity,
-                    notes = notes,
-                    location = location,
-                    dateMillis = dateMillis,
-                    startTime = startTime,
-                    endTime = endTime
-                )
-            }        )
+            onSave = viewModel::saveWorkout
+        )
     }
 
     uiState.deletingWorkout?.let { target ->
@@ -147,17 +143,6 @@ fun WorkoutScreen(
             workout = target,
             onConfirm = viewModel::confirmDeleteWorkout,
             onDismiss = viewModel::cancelDeleteWorkout
-        )
-    }
-
-    if (isExportDialogOpen) {
-        ExportDialog(
-            workouts = uiState.workouts,
-            userId = viewModel.currentUserId,
-            onDismiss = { isExportDialogOpen = false },
-            onExportSuccess = { msg ->
-                viewModel.showSnackbar(msg)
-            }
         )
     }
 }
